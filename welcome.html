@@ -70,14 +70,8 @@
             const bottomSheet = document.getElementById('bottomSheet');
             const closeButton = document.getElementById('closeButton');
 
-            // Verifica si es la primera vez que se visita la página
-            if (!localStorage.getItem('hasVisited')) {
-                // Muestra el bottom sheet
-                bottomSheet.classList.add('open');
-
-                // Marca que el usuario ha visitado la página
-                localStorage.setItem('hasVisited', 'true');
-            }
+            // Muestra el bottom sheet cada vez que se carga la página
+            bottomSheet.classList.add('open');
 
             // Cierra el bottom sheet al hacer clic en el botón
             closeButton.addEventListener('click', function() {
