@@ -26,6 +26,7 @@
             box-sizing: border-box;
             transform: translateY(100%);
             transition: transform 0.3s ease-out;
+            z-index: 1000; /* Asegura que el bottom sheet esté en la parte superior */
         }
         .bottom-sheet.open {
             transform: translateY(0);
@@ -39,7 +40,7 @@
             line-height: 1.5;
             color: #666;
         }
-        .close-button {
+        .bottom-sheet .close-button {
             background: #007aff;
             color: white;
             border: none;
@@ -53,8 +54,14 @@
 </head>
 <body>
     <div class="bottom-sheet" id="bottomSheet">
-        <h1>Bienvenido</h1>
-        <p>Esta es una página web con un estilo inspirado en iOS 17. ¡Gracias por visitarnos!</p>
+        <h1>Bienvenido a Nuestra Web</h1>
+        <p>Estamos encantados de tenerte aquí. A continuación, te ofrecemos una breve introducción sobre nuestros servicios y cómo puedes aprovechar al máximo nuestra plataforma.</p>
+        <ul>
+            <li><strong>Servicio 1:</strong> Descripción breve del servicio 1.</li>
+            <li><strong>Servicio 2:</strong> Descripción breve del servicio 2.</li>
+            <li><strong>Servicio 3:</strong> Descripción breve del servicio 3.</li>
+        </ul>
+        <p>Para más información, visita nuestra <a href="#">página de ayuda</a> o contacta con nuestro equipo de soporte.</p>
         <button class="close-button" id="closeButton">Cerrar</button>
     </div>
 
@@ -63,14 +70,8 @@
             const bottomSheet = document.getElementById('bottomSheet');
             const closeButton = document.getElementById('closeButton');
 
-            // Verifica si es la primera vez que se visita la página
-            if (!localStorage.getItem('hasVisited')) {
-                // Muestra el bottom sheet
-                bottomSheet.classList.add('open');
-
-                // Marca que el usuario ha visitado la página
-                localStorage.setItem('hasVisited', 'true');
-            }
+            // Muestra el bottom sheet cada vez que se carga la página
+            bottomSheet.classList.add('open');
 
             // Cierra el bottom sheet al hacer clic en el botón
             closeButton.addEventListener('click', function() {
