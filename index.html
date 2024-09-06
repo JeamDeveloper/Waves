@@ -12,7 +12,21 @@
             background-color: #ffffff; /* Fondo blanco */
             color: #333;
             overflow: hidden; /* Oculta el scroll cuando se muestra el bottom sheet */
-            transition: filter 0.3s ease-out; /* Transición para el desenfoque */
+            position: relative; /* Necesario para el overlay absoluto */
+        }
+        .overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.2); /* Oscurece el fondo con 20% de opacidad */
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+            z-index: 999; /* Asegura que el overlay esté detrás del bottom sheet */
+        }
+        .overlay.visible {
+            opacity: 1;
         }
         .bottom-sheet {
             position: fixed;
@@ -37,12 +51,10 @@
         .bottom-sheet.closed {
             transform: translateY(100%);
         }
-        .background-blur {
-            filter: blur(4px); /* Desenfoque del fondo */
-        }
     </style>
 </head>
 <body>
+    <div class="overlay" id="overlay"></div>
     <div class="bottom-sheet" id="bottomSheet">
         <!-- Contenido cargado dinámicamente aquí -->
     </div>
@@ -50,6 +62,7 @@
     <script>
         document.addEventListener("DOMContentLoaded", function() {
             const bottomSheet = document.getElementById('bottomSheet');
+            const overlay = document.getElementById('overlay');
             const body = document.body;
 
             // URL del HTML a cargar
@@ -61,8 +74,8 @@
                 .then(data => {
                     // Inserta el contenido del HTML en el bottom sheet
                     bottomSheet.insertAdjacentHTML('beforeend', data);
-                    // Muestra el bottom sheet y aplica el desenfoque al fondo
-                    body.classList.add('background-blur');
+                    // Muestra el bottom sheet y el overlay
+                    overlay.classList.add('visible');
                     bottomSheet.classList.add('open');
                 })
                 .catch(error => {
@@ -80,11 +93,22 @@
                 const moveY = event.touches[0].clientY;
                 if (moveY - startY > 50) { // Umbral de desplazamiento hacia abajo
                     bottomSheet.classList.add('closed');
-                    body.classList.remove('background-blur');
+                    overlay.classList.remove('visible');
                     setTimeout(() => {
                         bottomSheet.remove(); // Elimina el bottom sheet después de la animación
+                        overlay.remove(); // Elimina el overlay después de la animación
                     }, 300); // Tiempo de la animación
                 }
+            });
+
+            // Cierra el bottom sheet al hacer clic en el overlay
+            overlay.addEventListener('click', () => {
+                bottomSheet.classList.add('closed');
+                overlay.classList.remove('visible');
+                setTimeout(() => {
+                    bottomSheet.remove(); // Elimina el bottom sheet después de la animación
+                    overlay.remove(); // Elimina el overlay después de la animación
+                }, 300); // Tiempo de la animación
             });
         });
     </script>
