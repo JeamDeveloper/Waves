@@ -47,22 +47,7 @@
 </head>
 <body>
     <div class="bottom-sheet" id="bottomSheet">
-        <!-- Contenido HTML copiado de welcome.html -->
-        <div class="welcome-container">
-            <div class="header">
-                <h1>Welcome to Waves</h1>
-                <p>Your journey to the best experiences begins here.</p>
-            </div>
-            <div class="content">
-                <h2>What's New</h2>
-                <ul>
-                    <li>Feature 1: Description of feature 1.</li>
-                    <li>Feature 2: Description of feature 2.</li>
-                    <li>Feature 3: Description of feature 3.</li>
-                </ul>
-                <p>Explore more in our <a href="#">documentation</a>.</p>
-            </div>
-        </div>
+        <!-- Contenido cargado dinámicamente aquí -->
         <button class="close-button" id="closeButton">Cerrar</button>
     </div>
 
@@ -71,8 +56,21 @@
             const bottomSheet = document.getElementById('bottomSheet');
             const closeButton = document.getElementById('closeButton');
 
-            // Muestra el bottom sheet cada vez que se carga la página
-            bottomSheet.classList.add('open');
+            // URL del HTML a cargar
+            const url = 'https://raw.githubusercontent.com/JeamDeveloper/Waves/97c0fe80a8452db94feca5950d40e6155dcaace5/welcome.html';
+
+            // Función para cargar el contenido del HTML
+            fetch(url)
+                .then(response => response.text())
+                .then(data => {
+                    // Inserta el contenido del HTML en el bottom sheet
+                    bottomSheet.insertAdjacentHTML('afterbegin', data);
+                    // Muestra el bottom sheet
+                    bottomSheet.classList.add('open');
+                })
+                .catch(error => {
+                    console.error('Error al cargar el contenido:', error);
+                });
 
             // Cierra el bottom sheet al hacer clic en el botón
             closeButton.addEventListener('click', function() {
