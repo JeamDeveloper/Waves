@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unir Audios en Surround</title>
+    <script src="https://cdn.jsdelivr.net/npm/@ffmpeg/ffmpeg@0.11.8/dist/ffmpeg.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        h1 {
+            text-align: center;
+        }
+        .audio-input {
+            margin-bottom: 15px;
+        }
+        .audio-input label {
+            font-weight: bold;
+        }
+        .audio-input span {
+            margin-left: 10px;
+            font-style: italic;
+            color: #555;
+        }
+        button {
+            display: block;
+            margin: 20px auto;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+        #audioOutput {
+            display: block;
+            margin: 20px auto;
+        }
+    </style>
+</head>
+<body>
+    <h1>Unir Audios en Surround</h1>
+
+    <div class="audio-input">
+        <label for="audio1">Canal 1 (Frontal Izquierdo):</label>
+        <input type="file" id="audio1" accept="audio/*" required onchange="mostrarNombre(1)">
+        <span id="nombreAudio1">No seleccionado</span>
+    </div>
+
+    <div class="audio-input">
+        <label for="audio2">Canal 2 (Frontal Derecho):</label>
+        <input type="file" id="audio2" accept="audio/*" required onchange="mostrarNombre(2)">
+        <span id="nombreAudio2">No seleccionado</span>
+    </div>
+
+    <div class="audio-input">
+        <label for="audio3">Canal 3 (Central):</label>
+        <input type="file" id="audio3" accept="audio/*" required onchange="mostrarNombre(3)">
+        <span id="nombreAudio3">No seleccionado</span>
+    </div>
+
+    <div class="audio-input">
+        <label for="audio4">Canal 4 (Trasero Izquierdo):</label>
+        <input type="file" id="audio4" accept="audio/*" required onchange="mostrarNombre(4)">
+        <span id="nombreAudio4">No seleccionado</span>
+    </div>
+
+    <div class="audio-input">
+        <label for="audio5">Canal 5 (Trasero Derecho):</label>
+        <input type="file" id="audio5" accept="audio/*" required onchange="mostrarNombre(5)">
+        <span id="nombreAudio5">No seleccionado</span>
+    </div>
+
+    <button onclick="unirAudios()">Unir y Descargar Audio Surround</button>
+
+    <audio controls id="audioOutput" style="display:none;"></audio>
+
+    <script>
+        function mostrarNombre(canal) {
+            const input = document.getElementById(`audio${canal}`);
+            const nombre = input.files[0] ? input.files[0].name : "No seleccionado";
+            document.getElementById(`nombreAudio${canal}`).textContent = nombre;
+        }
+
+        async function unirAudios() {
+            const audio1 = document.getElementById('audio1').files[0];
+            const audio2 = document.getElementById('audio2').files[0];
+            const audio3 = document.getElementById('audio3').files[0];
+            const audio4 = document.getElementById('audio4').files[0];
+            const audio5 = document.getElementById('audio5').files[0];
+
+            if (!audio1 || !audio2 || !audio3 || !audio4 || !audio5) {
+                alert("Por favor selecciona los 5 archivos de audio.");
+                return;
+            }
+
+            // Inicializar FFmpeg
+            const { createFFmpeg, fetchFile } = FFmpeg;
+            const ffmpeg = createFFmpeg({ log: true });
+
+            await ffmpeg.load();
+
+            // Cargar los archivos en ffmpeg
+            ffmpeg.FS('writeFile', 'audio1.wav', await fetchFile(audio1));
+            ffmpeg.FS('writeFile', 'audio2.wav', await fetchFile(audio2));
+            ffmpeg.FS('writeFile', 'audio3.wav', await fetchFile(audio3));
+            ffmpeg.FS('writeFile', 'audio4.wav', await fetchFile(audio4));
+            ffmpeg.FS('writeFile', 'audio5.wav', await fetchFile(audio5));
+
+            // Crear el archivo surround (5.0)
+            await ffmpeg.run(
+                '-filter_complex', 
+                '[0:a][1:a][2:a][3:a][4:a]amerge=inputs=5,pan=5.0|FL<0.0.0|FR<1.0.0|FC<2.0.0|BL<3.0.0|BR<4.0.0[a]',
+                '-map', '[a]',
+                '-ac', '5',
+                '-c:a', 'pcm_s16le',
+                'output_surround.wav'
+            );
+
+            // Obtener el archivo combinado
+            const data = ffmpeg.FS('readFile', 'output_surround.wav');
+
+            // Crear un enlace para descargar el archivo
+            const blob = new Blob([data.buffer], { type: 'audio/wav' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'audio_surround.wav';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+
+            alert("El archivo surround ha sido generado y está listo para descargar.");
+        }
+    </script>
+</body>
+</html>
