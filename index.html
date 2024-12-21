@@ -53,6 +53,17 @@
       color: #555;
       text-align: center;
     }
+    #console {
+      margin-top: 20px;
+      padding: 10px;
+      background: #000;
+      color: #0f0;
+      font-family: monospace;
+      font-size: 0.9em;
+      max-height: 200px;
+      overflow-y: auto;
+      border-radius: 8px;
+    }
   </style>
 </head>
 <body>
@@ -81,6 +92,7 @@
       <button type="button" id="generate">Generar Audio 5.1</button>
     </form>
     <p id="status"></p>
+    <div id="console"></div>
   </div>
   
   <script src="https://cdn.jsdelivr.net/npm/ffmpeg.js/ffmpeg.min.js"></script>
@@ -102,9 +114,18 @@
       }
 
       document.getElementById('status').textContent = "Procesando archivos...";
+      const consoleOutput = document.getElementById('console');
+      consoleOutput.textContent = ''; // Limpiar consola
 
-      // Inicializar FFmpeg.js
-      const ffmpeg = FFmpeg.createFFmpeg({ log: true });
+      // Inicializar FFmpeg.js con soporte para logs
+      const ffmpeg = FFmpeg.createFFmpeg({
+        log: true,
+        logger: ({ type, message }) => {
+          consoleOutput.textContent += `[${type}] ${message}\n`;
+          consoleOutput.scrollTop = consoleOutput.scrollHeight; // Hacer scroll automático
+        }
+      });
+
       await ffmpeg.load();
 
       // Cargar archivos en FFmpeg.js
@@ -127,21 +148,26 @@
       ];
 
       // Ejecutar FFmpeg
-      await ffmpeg.run(...command);
+      try {
+        await ffmpeg.run(...command);
 
-      // Obtener el archivo resultante
-      const data = ffmpeg.FS('readFile', 'output_5_1.wav');
+        // Obtener el archivo resultante
+        const data = ffmpeg.FS('readFile', 'output_5_1.wav');
 
-      // Crear enlace de descarga
-      const blob = new Blob([data.buffer], { type: 'audio/wav' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      link.href = url;
-      link.download = 'output_5_1.wav';
-      link.textContent = 'Descargar archivo 5.1';
-      document.body.appendChild(link);
+        // Crear enlace de descarga
+        const blob = new Blob([data.buffer], { type: 'audio/wav' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'output_5_1.wav';
+        link.textContent = 'Descargar archivo 5.1';
+        document.body.appendChild(link);
 
-      document.getElementById('status').textContent = "Archivo generado. Descárgalo abajo.";
+        document.getElementById('status').textContent = "Archivo generado. Descárgalo abajo.";
+      } catch (err) {
+        consoleOutput.textContent += `[error] ${err.message}\n`;
+        document.getElementById('status').textContent = "Ocurrió un error durante la generación.";
+      }
     });
   </script>
 </body>
