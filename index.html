@@ -72,22 +72,22 @@
     <p>Selecciona los archivos para cada canal:</p>
     <form id="audio-form">
       <label for="front-center">Front Center:</label>
-      <input type="file" id="front-center" accept="audio/*"><br>
+      <input type="file" id="front-center" accept="audio/*,.m4a"><br>
       
       <label for="front-left">Front Left:</label>
-      <input type="file" id="front-left" accept="audio/*"><br>
+      <input type="file" id="front-left" accept="audio/*,.m4a"><br>
       
       <label for="front-right">Front Right:</label>
-      <input type="file" id="front-right" accept="audio/*"><br>
+      <input type="file" id="front-right" accept="audio/*,.m4a"><br>
       
       <label for="rear-left">Rear Left:</label>
-      <input type="file" id="rear-left" accept="audio/*"><br>
+      <input type="file" id="rear-left" accept="audio/*,.m4a"><br>
       
       <label for="rear-right">Rear Right:</label>
-      <input type="file" id="rear-right" accept="audio/*"><br>
+      <input type="file" id="rear-right" accept="audio/*,.m4a"><br>
       
       <label for="subwoofer">Subwoofer (LFE):</label>
-      <input type="file" id="subwoofer" accept="audio/*"><br>
+      <input type="file" id="subwoofer" accept="audio/*,.m4a"><br>
 
       <button type="button" id="generate">Generar Audio 5.1</button>
     </form>
@@ -131,17 +131,17 @@
       // Cargar archivos en FFmpeg.js
       for (const [key, file] of Object.entries(files)) {
         const arrayBuffer = await file.arrayBuffer();
-        ffmpeg.FS('writeFile', key + '.wav', new Uint8Array(arrayBuffer));
+        ffmpeg.FS('writeFile', key + '.m4a', new Uint8Array(arrayBuffer));
       }
 
       // Generar comando FFmpeg para combinar canales
       const command = [
-        '-i', 'frontCenter.wav',
-        '-i', 'frontLeft.wav',
-        '-i', 'frontRight.wav',
-        '-i', 'rearLeft.wav',
-        '-i', 'rearRight.wav',
-        '-i', 'subwoofer.wav',
+        '-i', 'frontCenter.m4a',
+        '-i', 'frontLeft.m4a',
+        '-i', 'frontRight.m4a',
+        '-i', 'rearLeft.m4a',
+        '-i', 'rearRight.m4a',
+        '-i', 'subwoofer.m4a',
         '-filter_complex', '[0:a][1:a][2:a][3:a][4:a][5:a]amerge=inputs=6',
         '-c:a', 'pcm_s16le',
         'output_5_1.wav'
