@@ -1,116 +1,148 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mi Página Web</title>
-    <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #ffffff; /* Fondo blanco */
-            color: #333;
-            overflow: hidden; /* Oculta el scroll cuando se muestra el bottom sheet */
-            position: relative; /* Necesario para el overlay absoluto */
-        }
-        .overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.2); /* Oscurece el fondo con 20% de opacidad */
-            opacity: 0;
-            transition: opacity 0.3s ease-out;
-            z-index: 999; /* Asegura que el overlay esté detrás del bottom sheet */
-        }
-        .overlay.visible {
-            opacity: 1;
-        }
-        .bottom-sheet {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            max-width: 600px;
-            background: #ffffff;
-            border-radius: 20px 20px 0 0;
-            box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
-            padding: 20px;
-            box-sizing: border-box;
-            transform: translateY(100%);
-            transition: transform 0.3s ease-out;
-            z-index: 1000; /* Asegura que el bottom sheet esté en la parte superior */
-            max-height: 80vh; /* Limita la altura del bottom sheet */
-            overflow-y: auto; /* Añade scroll si el contenido es muy largo */
-        }
-        .bottom-sheet.open {
-            transform: translateY(0);
-        }
-        .bottom-sheet.closed {
-            transform: translateY(100%);
-        }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Audio Mixer 5.1</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f4f4f9;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 50px auto;
+      padding: 20px;
+      background: #fff;
+      border-radius: 8px;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    }
+    h1 {
+      text-align: center;
+      color: #4caf50;
+    }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
+    label {
+      margin-top: 10px;
+      font-weight: bold;
+    }
+    input[type="file"] {
+      margin-bottom: 10px;
+    }
+    button {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #4caf50;
+      color: #fff;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+    }
+    button:hover {
+      background-color: #45a049;
+    }
+    #status {
+      margin-top: 20px;
+      font-size: 1.1em;
+      color: #555;
+      text-align: center;
+    }
+  </style>
 </head>
 <body>
-    <div class="overlay" id="overlay"></div>
-    <div class="bottom-sheet" id="bottomSheet">
-        <!-- Contenido cargado dinámicamente aquí -->
-    </div>
+  <div class="container">
+    <h1>Audio Mixer 5.1</h1>
+    <p>Selecciona los archivos para cada canal:</p>
+    <form id="audio-form">
+      <label for="front-center">Front Center:</label>
+      <input type="file" id="front-center" accept="audio/*"><br>
+      
+      <label for="front-left">Front Left:</label>
+      <input type="file" id="front-left" accept="audio/*"><br>
+      
+      <label for="front-right">Front Right:</label>
+      <input type="file" id="front-right" accept="audio/*"><br>
+      
+      <label for="rear-left">Rear Left:</label>
+      <input type="file" id="rear-left" accept="audio/*"><br>
+      
+      <label for="rear-right">Rear Right:</label>
+      <input type="file" id="rear-right" accept="audio/*"><br>
+      
+      <label for="subwoofer">Subwoofer (LFE):</label>
+      <input type="file" id="subwoofer" accept="audio/*"><br>
 
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            const bottomSheet = document.getElementById('bottomSheet');
-            const overlay = document.getElementById('overlay');
-            const body = document.body;
+      <button type="button" id="generate">Generar Audio 5.1</button>
+    </form>
+    <p id="status"></p>
+  </div>
+  
+  <script src="https://cdn.jsdelivr.net/npm/ffmpeg.js/ffmpeg.min.js"></script>
+  <script>
+    document.getElementById('generate').addEventListener('click', async () => {
+      const files = {
+        frontCenter: document.getElementById('front-center').files[0],
+        frontLeft: document.getElementById('front-left').files[0],
+        frontRight: document.getElementById('front-right').files[0],
+        rearLeft: document.getElementById('rear-left').files[0],
+        rearRight: document.getElementById('rear-right').files[0],
+        subwoofer: document.getElementById('subwoofer').files[0]
+      };
 
-            // URL del HTML a cargar
-            const url = 'https://raw.githubusercontent.com/JeamDeveloper/Waves/97c0fe80a8452db94feca5950d40e6155dcaace5/welcome.html';
+      // Verificar si todos los archivos están seleccionados
+      if (Object.values(files).some(file => !file)) {
+        document.getElementById('status').textContent = "Por favor, selecciona todos los archivos.";
+        return;
+      }
 
-            // Función para cargar el contenido del HTML
-            fetch(url)
-                .then(response => response.text())
-                .then(data => {
-                    // Inserta el contenido del HTML en el bottom sheet
-                    bottomSheet.insertAdjacentHTML('beforeend', data);
-                    // Muestra el bottom sheet y el overlay
-                    overlay.classList.add('visible');
-                    bottomSheet.classList.add('open');
-                })
-                .catch(error => {
-                    console.error('Error al cargar el contenido:', error);
-                });
+      document.getElementById('status').textContent = "Procesando archivos...";
 
-            // Cierra el bottom sheet al deslizar hacia abajo
-            let startY;
+      // Inicializar FFmpeg.js
+      const ffmpeg = FFmpeg.createFFmpeg({ log: true });
+      await ffmpeg.load();
 
-            bottomSheet.addEventListener('touchstart', (event) => {
-                startY = event.touches[0].clientY;
-            });
+      // Cargar archivos en FFmpeg.js
+      for (const [key, file] of Object.entries(files)) {
+        const arrayBuffer = await file.arrayBuffer();
+        ffmpeg.FS('writeFile', key + '.wav', new Uint8Array(arrayBuffer));
+      }
 
-            bottomSheet.addEventListener('touchmove', (event) => {
-                const moveY = event.touches[0].clientY;
-                if (moveY - startY > 50) { // Umbral de desplazamiento hacia abajo
-                    bottomSheet.classList.add('closed');
-                    overlay.classList.remove('visible');
-                    setTimeout(() => {
-                        bottomSheet.remove(); // Elimina el bottom sheet después de la animación
-                        overlay.remove(); // Elimina el overlay después de la animación
-                    }, 300); // Tiempo de la animación
-                }
-            });
+      // Generar comando FFmpeg para combinar canales
+      const command = [
+        '-i', 'frontCenter.wav',
+        '-i', 'frontLeft.wav',
+        '-i', 'frontRight.wav',
+        '-i', 'rearLeft.wav',
+        '-i', 'rearRight.wav',
+        '-i', 'subwoofer.wav',
+        '-filter_complex', '[0:a][1:a][2:a][3:a][4:a][5:a]amerge=inputs=6',
+        '-c:a', 'pcm_s16le',
+        'output_5_1.wav'
+      ];
 
-            // Cierra el bottom sheet al hacer clic en el overlay
-            overlay.addEventListener('click', () => {
-                bottomSheet.classList.add('closed');
-                overlay.classList.remove('visible');
-                setTimeout(() => {
-                    bottomSheet.remove(); // Elimina el bottom sheet después de la animación
-                    overlay.remove(); // Elimina el overlay después de la animación
-                }, 300); // Tiempo de la animación
-            });
-        });
-    </script>
+      // Ejecutar FFmpeg
+      await ffmpeg.run(...command);
+
+      // Obtener el archivo resultante
+      const data = ffmpeg.FS('readFile', 'output_5_1.wav');
+
+      // Crear enlace de descarga
+      const blob = new Blob([data.buffer], { type: 'audio/wav' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = 'output_5_1.wav';
+      link.textContent = 'Descargar archivo 5.1';
+      document.body.appendChild(link);
+
+      document.getElementById('status').textContent = "Archivo generado. Descárgalo abajo.";
+    });
+  </script>
 </body>
 </html>
